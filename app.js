@@ -22,6 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/v1/users', require('./routes/users'));
 app.use('/api/v1/products', require('./routes/products'));
 app.use('/api/v1/categories', require('./routes/categories'));
+app.use('/api/v1/roles', require('./routes/roles'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -29,14 +30,22 @@ app.use(function(req, res, next) {
 });
 
 // error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+app.use(function(err, req, res, next) {
+  // If the request is for an API route, return JSON error
+  if (req.originalUrl.startsWith('/api/')) {
+    res.status(err.status || 500).json({
+      error: err.message || 'Internal Server Error',
+      status: err.status || 500
+    });
+  } else {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+  }
 });
 
 module.exports = app;
